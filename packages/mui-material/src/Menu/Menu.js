@@ -13,6 +13,7 @@ import rootShouldForwardProp from '../styles/rootShouldForwardProp';
 import { styled } from '../zero-styled';
 import { useDefaultProps } from '../DefaultPropsProvider';
 import { getMenuUtilityClass } from './menuClasses';
+import useSlot from '../utils/useSlot';
 
 const RTL_ORIGIN = {
   vertical: 'top',
@@ -79,7 +80,7 @@ const Menu = React.forwardRef(function Menu(inProps, ref) {
     PaperProps = {},
     PopoverClasses,
     transitionDuration = 'auto',
-    TransitionProps: { onEntering, ...TransitionProps } = {},
+    TransitionProps: TransitionPropsProp,
     variant = 'selectedMenu',
     slots = {},
     slotProps = {},
@@ -88,6 +89,7 @@ const Menu = React.forwardRef(function Menu(inProps, ref) {
 
   const isRtl = useRtl();
 
+  const { onEntering, ...TransitionProps } = TransitionPropsProp ?? {};
   const ownerState = {
     ...props,
     autoFocus,
@@ -179,8 +181,20 @@ const Menu = React.forwardRef(function Menu(inProps, ref) {
     className: classes.paper,
   });
 
+  const backwardCompatibleSlotProps = { transition: TransitionPropsProp, ...slotProps };
+
+  const externalForwardedProps = {
+    slotProps: backwardCompatibleSlotProps,
+  };
+
+  const [TransitionSlot] = useSlot('transition', {
+    elementType: MenuRoot,
+    externalForwardedProps,
+    ownerState,
+  });
+
   return (
-    <MenuRoot
+    <TransitionSlot
       onClose={onClose}
       anchorOrigin={{
         vertical: 'bottom',
@@ -214,7 +228,7 @@ const Menu = React.forwardRef(function Menu(inProps, ref) {
       >
         {children}
       </MenuMenuList>
-    </MenuRoot>
+    </TransitionSlot>
   );
 });
 
